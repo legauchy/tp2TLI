@@ -36,13 +36,21 @@ public class Grapher extends JPanel implements MouseMotionListener, MouseListene
 	protected int W = 400;
 	protected int H = 300;
 	
+        public enum STATES {
+            IDLE,
+            PRESS_OR_DRAG_RIGHT,
+            PRESS_OR_DRAG_LEFT,
+            DRAG_RIGHT,
+            DRAG_LEFT
+        }
+        private STATES state;
         private Rectangle selectionRectangle;
-        protected int pressedButton;
         protected int posX, posY;
 	protected double xmin, xmax;
 	protected double ymin, ymax;
 
 	protected Vector<Function> functions;
+        protected Function bold_function;
 	
 	public Grapher() {
 		xmin = -PI/2.; xmax = 3*PI/2;
@@ -52,6 +60,7 @@ public class Grapher extends JPanel implements MouseMotionListener, MouseListene
                 this.addMouseMotionListener(this);
                 this.addMouseWheelListener(this);
 		functions = new Vector<Function>();
+                this.state = STATES.IDLE;
 	}
 	
 	public void add(String expression) {
@@ -63,8 +72,10 @@ public class Grapher extends JPanel implements MouseMotionListener, MouseListene
 		repaint();
 	}
 		
+        @Override
 	public Dimension getPreferredSize() { return new Dimension(W, H); }
 	
+        @Override
 	protected void paintComponent(Graphics g) {
 		super.paintComponent(g);
 
@@ -114,8 +125,13 @@ public class Grapher extends JPanel implements MouseMotionListener, MouseListene
 			for(int i = 0; i < N; i++) {
 				Ys[i] = Y(f.y(xs[i]));
 			}
-			
-			g2.drawPolyline(Xs, Ys, N);
+			if(bold_function == f) {
+                            g2.setStroke(new BasicStroke(3));
+                            g2.drawPolyline(Xs, Ys, N);
+                            g2.setStroke(new BasicStroke(1));
+                        }else {
+                            g2.drawPolyline(Xs, Ys, N);
+                        }
 		}
 
 		g2.setClip(null);
@@ -206,66 +222,92 @@ public class Grapher extends JPanel implements MouseMotionListener, MouseListene
 		ymin = min(y0, y1); ymax = max(y0, y1);
 		repaint();	
 	}
+        
+    public void setBoldFunction(int index) {
+        bold_function = functions.get(index);
+        repaint();
+    }
+    
+    public void mousePressed(MouseEvent e) {
+       switch(this.state) {
+           case IDLE : this.posX = e.getX();
+                       this.posY = e.getY();
+                       if(e.getButton() == 1){
+                           this.state = STATES.PRESS_OR_DRAG_LEFT;
+                       }else if(e.getButton() == 3){
+                           this.state = STATES.PRESS_OR_DRAG_RIGHT;
+                       }
+                       break;
+           default : break;
+
+       }
+    }
 
     public void mouseDragged(MouseEvent e) {
-        int decalX = e.getX() - posX;
-        int decalY = e.getY() - posY;
-        if(this.pressedButton == 1) {
-            this.translate(decalX, decalY);
-            posX = e.getX();
-            posY = e.getY();
-        }else if (this.pressedButton == 3) {
-            Point dragPoint = e.getPoint();
-            int x = Math.min(this.posX, dragPoint.x);
-            int y = Math.min(this.posY, dragPoint.y);
-            int width = Math.max(this.posX - dragPoint.x, dragPoint.x - this.posX);
-            int height = Math.max(this.posY - dragPoint.y, dragPoint.y - this.posY);
-            selectionRectangle = new Rectangle(x, y, width, height);
-            repaint();
-        }
-    }
-
-    public void mouseMoved(MouseEvent e) {
-    }
-
-    public void mouseClicked(MouseEvent e) {
-        if(e.getButton() == 1) {
-            this.zoom(e.getPoint(), 5);
-        } else if (e.getButton() == 3){
-            this.zoom(e.getPoint(), -5);
-        }
-    }
-
-    public void mousePressed(MouseEvent e) {
-        this.posX = e.getX();
-        this.posY = e.getY();
-        this.pressedButton = e.getButton();
-        if(this.pressedButton == 1) {
-            this.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        switch(this.state) {
+            case PRESS_OR_DRAG_LEFT : this.state = STATES.DRAG_LEFT;
+                                        this.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));                
+            case DRAG_LEFT :   int decalX = e.getX() - posX;
+                                int decalY = e.getY() - posY;this.translate(decalX, decalY);
+                                posX = e.getX();
+                                posY = e.getY();
+                                break;
+                
+            case PRESS_OR_DRAG_RIGHT : this.state = STATES.DRAG_RIGHT;
+            case DRAG_RIGHT :  Point dragPoint = e.getPoint();
+                                int x = Math.min(this.posX, dragPoint.x);
+                                int y = Math.min(this.posY, dragPoint.y);
+                                int width = Math.max(this.posX - dragPoint.x, dragPoint.x - this.posX);
+                                int height = Math.max(this.posY - dragPoint.y, dragPoint.y - this.posY);
+                                selectionRectangle = new Rectangle(x, y, width, height);
+                                repaint();
+                                break;
+            default: break;
         }
     }
 
     public void mouseReleased(MouseEvent e) {
-        this.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-        posX = e.getX();
-        posY = e.getY();
-        if(this.pressedButton == 3 && selectionRectangle != null){
-            this.zoom(this.selectionRectangle.getLocation(), 
-                            new Point(this.selectionRectangle.x + this.selectionRectangle.width,
-                                          this.selectionRectangle.y + this.selectionRectangle.height));
-            selectionRectangle = null;
-        }
-        this.repaint();
+        switch (this.state) {
+            case PRESS_OR_DRAG_LEFT : this.zoom(e.getPoint(), 5);
+                                        this.state = STATES.IDLE;
+                                        break;
+            case PRESS_OR_DRAG_RIGHT : this.zoom(e.getPoint(), -5);
+                                        this.state = STATES.IDLE;
+                                        break;
+                
+            case DRAG_LEFT :   this.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+                                this.state = STATES.IDLE;
+                                break;
+            
+            case DRAG_RIGHT :  this.zoom(this.selectionRectangle.getLocation(), 
+                                        new Point(this.selectionRectangle.x + this.selectionRectangle.width,
+                                        this.selectionRectangle.y + this.selectionRectangle.height));
+                                this.selectionRectangle = null;
+                                this.repaint();
+                                this.state = STATES.IDLE;
+                                break;
+            default: break;
+        }        
+    }
+    
+    public void mouseWheelMoved(MouseWheelEvent e) {
+        switch(this.state) {
+            case IDLE : int rotation = e.getWheelRotation();
+                        this.zoom(e.getPoint(), -rotation*2);
+                        break;
+            default : break;
+        }  
+    }
+    
+    public void mouseMoved(MouseEvent e) {
     }
 
+    public void mouseClicked(MouseEvent e) {
+    }
+    
     public void mouseEntered(MouseEvent e) {
     }
 
     public void mouseExited(MouseEvent e) {
-    }
-
-    public void mouseWheelMoved(MouseWheelEvent e) {
-        int rotation = e.getWheelRotation();
-        this.zoom(e.getPoint(), -rotation*2);
     }
 }

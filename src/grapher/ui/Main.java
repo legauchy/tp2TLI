@@ -1,6 +1,7 @@
 package grapher.ui;
 
 import javax.swing.JFrame;
+import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
 
 
@@ -14,7 +15,7 @@ public class Main extends JFrame {
 			grapher.add(expression);
 		}
 		
-		add(grapher);
+		add(new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,new FunctionList(grapher),grapher));
 		pack();
 	}
 
