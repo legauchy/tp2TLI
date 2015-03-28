@@ -6,31 +6,137 @@
 package grapher.ui;
 
 import grapher.fc.Function;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import javax.swing.JList;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.JButton;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTable;
+import javax.swing.JToolBar;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.table.TableColumn;
 
-public class FunctionList extends JList<Function> implements MouseListener{
+public class FunctionList extends JPanel implements ListSelectionListener{
+   
     protected Grapher graphe;
+    protected JTable liste;
+    protected ColorTableModel model;
+    protected JToolBar toolbar = new JToolBar();
+    
     public FunctionList(Grapher graphe) {
-        super(graphe.functions);
+        super(new BorderLayout());
+        
+        liste = new JTable(new ColorTableModel());
+        model = (ColorTableModel) liste.getModel();
+        for(Function f : graphe.functions) {
+            model.add(f, Color.BLACK);
+        }
+        liste.getSelectionModel().addListSelectionListener(this);
+        TableColumn colColor = liste.getColumnModel().getColumn(1);
+        colColor.setCellRenderer(new ColorCellRenderer());
+        colColor.setCellEditor(null);
+        this.add(liste, BorderLayout.CENTER);
+        
         this.graphe = graphe;
-        addMouseListener(this);
+        graphe.model = this.model;
+        
+        
+        this.addButton();
+        this.add(toolbar, BorderLayout.PAGE_END);
+    }
+    
+    private void addButton() {
+        JButton btplus = new JButton("+");
+        JButton btmoins = new JButton("-");
+        btplus.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                addExpression();
+            }
+        });
+        
+        btmoins.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                removeExpression();
+            }
+        });
+        
+        toolbar.add(btplus);
+        toolbar.add(btmoins);
+    }
+    
+    protected void addExpression() {
+        String res = JOptionPane.showInputDialog("Nouvelle expression");
+        if(res != null && !res.equals("")) {
+            Function f = graphe.add(res);
+            model.add(f, Color.BLACK);
+        }
+        repaint();
+    }
+    
+    protected void removeExpression() {
+        graphe.removeFuncs(liste.getSelectedRows());
+        model.remove(liste.getSelectedRows());
+        repaint();
+    }
+    
+    public void valueChanged(ListSelectionEvent e) {
+        graphe.setBoldFunction(liste.getSelectedRows());    
+    }
+    
+    
+    /* protected Grapher graphe;
+    protected JList<Function> liste;
+    protected JToolBar toolbar = new JToolBar();
+    
+    public FunctionList(Grapher graphe) {
+        super(new BorderLayout());
+        liste = new JList<Function>(graphe.functions);
+        liste.addListSelectionListener(this);
+        this.add(liste, BorderLayout.CENTER);
+        this.graphe = graphe;
+        
+        
+        this.addButton();
+        this.add(toolbar, BorderLayout.PAGE_END);
     }
 
-    public void mouseClicked(MouseEvent e) {
-        graphe.setBoldFunction(this.getSelectedIndex());
+    public void valueChanged(ListSelectionEvent e) {
+        graphe.setBoldFunction(liste.getSelectedIndices());    
     }
-
-    public void mousePressed(MouseEvent e) {
+    
+    private void addButton() {
+        JButton btplus = new JButton("+");
+        JButton btmoins = new JButton("-");
+        btplus.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                addExpression();
+            }
+        });
+        
+        btmoins.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                removeExpression();
+            }
+        });
+        
+        toolbar.add(btplus);
+        toolbar.add(btmoins);
     }
-
-    public void mouseReleased(MouseEvent e) {
+    
+    protected void addExpression() {
+        String res = JOptionPane.showInputDialog("Nouvelle expression");
+        if(res != null && !res.equals("")) {
+            graphe.add(res);
+            liste.setListData(graphe.functions);
+        }
     }
-
-    public void mouseEntered(MouseEvent e) {
+    
+    protected void removeExpression() {
+        graphe.removeFuncs(liste.getSelectedIndices());
+        liste.setListData(graphe.functions);
     }
-
-    public void mouseExited(MouseEvent e) {
-    }
+*/
 }

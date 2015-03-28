@@ -21,6 +21,7 @@ import java.awt.Cursor;
 import java.awt.Rectangle;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.util.ArrayList;
 
 
 public class Grapher extends JPanel implements MouseMotionListener, MouseListener, MouseWheelListener {
@@ -50,8 +51,9 @@ public class Grapher extends JPanel implements MouseMotionListener, MouseListene
 	protected double ymin, ymax;
 
 	protected Vector<Function> functions;
-        protected Function bold_function;
-	
+        protected ArrayList<Function> bold_function = new ArrayList<Function>();
+	protected ColorTableModel model;
+        
 	public Grapher() {
 		xmin = -PI/2.; xmax = 3*PI/2;
 		ymin = -1.5;   ymax = 1.5;
@@ -63,14 +65,29 @@ public class Grapher extends JPanel implements MouseMotionListener, MouseListene
                 this.state = STATES.IDLE;
 	}
 	
-	public void add(String expression) {
-		add(FunctionFactory.createFunction(expression));
+	public Function add(String expression) {
+            Function f = FunctionFactory.createFunction(expression);
+            add(f);
+            return f;
 	}
 	
 	public void add(Function function) {
-		functions.add(function);
-		repaint();
+            functions.add(function);
+            repaint();
 	}
+        
+        public void removeFuncs(int[] indices) {
+            int offset = 0;
+            for(Integer i : indices) {
+                this.removeFuncs(i - offset);
+                offset++;
+            }
+        }
+        
+        public void removeFuncs(int i) {
+            this.functions.remove(i);
+            repaint();
+        }
 		
         @Override
 	public Dimension getPreferredSize() { return new Dimension(W, H); }
@@ -121,17 +138,21 @@ public class Grapher extends JPanel implements MouseMotionListener, MouseListene
 		
 		for(Function f : functions) {
 			// y values
+                        g2.setColor(model.getFunctionColor(f));
 			int Ys[] = new int[N];
 			for(int i = 0; i < N; i++) {
 				Ys[i] = Y(f.y(xs[i]));
 			}
-			if(bold_function == f) {
+			if(bold_function.contains(f)) {
                             g2.setStroke(new BasicStroke(3));
                             g2.drawPolyline(Xs, Ys, N);
                             g2.setStroke(new BasicStroke(1));
                         }else {
                             g2.drawPolyline(Xs, Ys, N);
+                            
                         }
+                        
+                        g2.setColor(Color.BLACK);
 		}
 
 		g2.setClip(null);
@@ -223,9 +244,13 @@ public class Grapher extends JPanel implements MouseMotionListener, MouseListene
 		repaint();	
 	}
         
-    public void setBoldFunction(int index) {
-        bold_function = functions.get(index);
+    public void setBoldFunction(int[] index) {
+        bold_function = new ArrayList<Function>();
+        for(Integer i : index) {
+            bold_function.add(functions.get(i));
+        }
         repaint();
+        
     }
     
     public void mousePressed(MouseEvent e) {
