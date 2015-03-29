@@ -14,7 +14,7 @@ import javax.swing.table.AbstractTableModel;
  *
  * @author anthony
  */
-public class ColorTableModel extends AbstractTableModel{
+public class ColorTableModel extends AbstractTableModel {
     
     ArrayList<Function> rowFunc;
     ArrayList<Color> rowColor;
@@ -53,6 +53,7 @@ public class ColorTableModel extends AbstractTableModel{
     public void add(Function func, Color col) {
         this.rowFunc.add(func);
         this.rowColor.add(col);
+        fireTableRowsInserted(rowFunc.size()-1, rowFunc.size()-1);
     }
     
     public void remove(int[] toRemove) {
@@ -60,13 +61,21 @@ public class ColorTableModel extends AbstractTableModel{
         for(Integer i : toRemove) {
             this.rowColor.remove(i-offset);
             this.rowFunc.remove(i-offset);
+            fireTableRowsDeleted(i-offset, i-offset);
             offset++;
         }
     }
     
     @Override
     public boolean isCellEditable(int row, int col) {
-        return col == 1;
+        return (col == 1);
     }
-
+    
+    @Override
+    public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
+        if(aValue != null){
+            rowColor.set(rowIndex, (Color) aValue);
+            fireTableDataChanged();
+        }
+    }
 }

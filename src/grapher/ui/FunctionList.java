@@ -37,7 +37,7 @@ public class FunctionList extends JPanel implements ListSelectionListener{
         liste.getSelectionModel().addListSelectionListener(this);
         TableColumn colColor = liste.getColumnModel().getColumn(1);
         colColor.setCellRenderer(new ColorCellRenderer());
-        colColor.setCellEditor(null);
+        colColor.setCellEditor(new ColorCellEditor());
         this.add(liste, BorderLayout.CENTER);
         
         this.graphe = graphe;
@@ -83,7 +83,7 @@ public class FunctionList extends JPanel implements ListSelectionListener{
     }
     
     public void valueChanged(ListSelectionEvent e) {
-        graphe.setBoldFunction(liste.getSelectedRows());    
+        graphe.setBoldFunction(liste.getSelectedRows());
     }
     
     

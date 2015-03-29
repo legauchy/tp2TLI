@@ -62,6 +62,7 @@ public class Grapher extends JPanel implements MouseMotionListener, MouseListene
                 this.addMouseMotionListener(this);
                 this.addMouseWheelListener(this);
 		functions = new Vector<Function>();
+                bold_function = new ArrayList<Function>();
                 this.state = STATES.IDLE;
 	}
 	
@@ -245,12 +246,11 @@ public class Grapher extends JPanel implements MouseMotionListener, MouseListene
 	}
         
     public void setBoldFunction(int[] index) {
-        bold_function = new ArrayList<Function>();
+        bold_function.clear();
         for(Integer i : index) {
             bold_function.add(functions.get(i));
         }
         repaint();
-        
     }
     
     public void mousePressed(MouseEvent e) {

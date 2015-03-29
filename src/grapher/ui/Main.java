@@ -22,7 +22,7 @@ public class Main extends JFrame {
 	Main(String title, String[] expressions) {
 		super(title);
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
-		Grapher grapher = new Grapher();		
+		Grapher grapher = new Grapher();
 		for(String expression : expressions) {
 			grapher.add(expression);
 		}

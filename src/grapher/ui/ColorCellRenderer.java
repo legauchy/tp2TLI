@@ -9,21 +9,18 @@ import java.awt.Color;
 import java.awt.Component;
 import javax.swing.JLabel;
 import javax.swing.JTable;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 
 /**
  *
  * @author anthony
  */
-public class ColorCellRenderer extends JLabel implements TableCellRenderer{
-
-    public ColorCellRenderer() {
-        super();
-        this.setOpaque(true);
-    }
-
+public class ColorCellRenderer extends DefaultTableCellRenderer implements TableCellRenderer{
     
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+        super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+        setText("");
         this.setBackground((Color) value);
         return this;
     }
