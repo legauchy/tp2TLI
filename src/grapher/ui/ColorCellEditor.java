@@ -22,25 +22,24 @@ import javax.swing.table.TableCellEditor;
  *
  * @author anthony
  */
-public class ColorCellEditor extends AbstractCellEditor implements TableCellEditor, ActionListener {
-    
+public class ColorCellEditor extends AbstractCellEditor implements TableCellEditor {
+
     private Color color;
     private JButton button;
     private JColorChooser colorChooser;
     private JDialog dialog;
-    
+
     public ColorCellEditor() {
         super();
- 
+
         button = new JButton();
         button.setActionCommand("change");
-        button.addActionListener(this);
-        //button.setBorderPainted(false);
-        
+        button.addActionListener(new ButtonCellEditorActionListener());
+
         colorChooser = new JColorChooser();
-        dialog = JColorChooser.createDialog(button, "Choisir une couleur", true, colorChooser, this, null);
+        dialog = JColorChooser.createDialog(button, "Choisir une couleur", true, colorChooser, new JColorChooserActionListener(), null);
     }
-    
+
     public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
         color = (Color) value;
         return button;
@@ -50,16 +49,22 @@ public class ColorCellEditor extends AbstractCellEditor implements TableCellEdit
         return color;
     }
 
-    public void actionPerformed(ActionEvent e) {
-        if ("change".equals(e.getActionCommand())) {
+    private class ButtonCellEditorActionListener implements ActionListener {
+
+        public void actionPerformed(ActionEvent e) {
             button.setBackground(color);
             colorChooser.setColor(color);
             dialog.setVisible(true);
             // averti le JTable qu'on a terminé l'édition et qu'il faut afficher à nouveau le renderer
             fireEditingStopped();
-        } else {
+        }
+    }
+
+    private class JColorChooserActionListener implements ActionListener {
+
+        public void actionPerformed(ActionEvent e) {
             color = colorChooser.getColor();
         }
     }
-    
+
 }
