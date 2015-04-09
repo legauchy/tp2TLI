@@ -1,3 +1,4 @@
-build/*
-dyna/*
-nbproject/*
+build/
+dyna/
+nbproject/
+*.class
